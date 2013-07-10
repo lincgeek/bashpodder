@@ -29,9 +29,11 @@ rm -f temp.log
 # Support both curl and wget
 case $downloader in
 	wget)
+		get_podcasts="wget -q -O -"
 		download_cmd="wget -U BashPodder -c -q -t $download_retries -O "
 	;;
 	curl)
+		get_podcasts="curl -s"
 		download_cmd="curl -A BashPodder -s --retry $download_retries -o "
 	;;
 	*)
@@ -39,10 +41,10 @@ case $downloader in
 	exit 1
 esac
 
-# Read the bp.conf file and wget any url not already in the podcast.log file:
+# Read the bp.conf file and download any url not already in the podcast.log file:
 while read podcast
 	do
-	file=$(xsltproc parse_enclosure.xsl $podcast 2> /dev/null || wget -q $podcast -O - | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
+	file=$(xsltproc parse_enclosure.xsl $podcast 2> /dev/null || $get_podcasts -q $podcast | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
 		echo $url >> temp.log
