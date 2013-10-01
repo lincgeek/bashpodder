@@ -40,6 +40,12 @@ podcast_list="${HOME}/.bashpodder/bp.conf"
 # The log of previously-downloaded podcasts
 podcast_log="${HOME}/.bashpodder/podcast.log"
 
+# The file xsltproc uses to parse the RSS feeds (the write_xsl function acts as
+# a backstop in case this file doesn't exist and the user doesn't point us to 
+# one that does)
+xsl='/etc/bashpodder/parse_enclosure.xsl'
+
+
 # Apply the settings in the config file
 . $CONF_FILE
 
@@ -54,6 +60,13 @@ mkdir -p $datadir
 
 # Create a temporary directory for temporary things
 work_dir=$(mktemp -d)
+
+# Check to see if parse_enclosure.xsl is somewhere awesome like /etc/bashpodder
+# and if not, write it to our temp directory
+if [ ! -s $xsl ]; then
+	write_xsl
+	xsl="{work_dir}/parse_enclosure.xl"
+fi
 
 # Support both curl and wget
 case $downloader in
@@ -73,7 +86,7 @@ esac
 # Read the bp.conf file and download any url not already in the podcast.log file:
 while read podcast
 	do
-	file=$(xsltproc parse_enclosure.xsl $podcast 2> /dev/null || $get_podcasts -q $podcast | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
+	file=$(xsltproc $xsl $podcast 2> /dev/null || $get_podcasts -q $podcast | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
 		echo $url >> $work_dir/temp.log
@@ -89,3 +102,32 @@ sort $work_dir/temp.log | uniq > $podcast_log
 rm -rf $work_dir
 # Create an m3u playlist:
 ls $datadir | grep -v m3u > $datadir/podcast.m3u
+
+exit 0
+
+
+#########
+#
+# Write the xsl file to the temp directory because it's jsut that important.
+# There has to be a better way to do this, but I don't know what it is. This 
+# allows the script to be useful without having to go through the whole "run a
+# script to install a script" process. For people who do (or, for example, when
+# or if I get this packaged for Fedora), the following is just wasted bits.
+#
+#########
+
+function write_xsl {
+	cat <<EOF > $work_dir/parse_enclosure.xsl
+<?xml version="1.0"?>
+<stylesheet version="1.0"
+        xmlns="http://www.w3.org/1999/XSL/Transform">
+        <output method="text"/>
+        <template match="/">
+                <apply-templates select="/rss/channel/item/enclosure"/>
+        </template>
+        <template match="enclosure">
+                <value-of select="@url"/><text>&#10;</text>
+        </template>
+</stylesheet>
+EOF
+}
