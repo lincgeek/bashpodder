@@ -4,10 +4,13 @@ Bashpodder requires you have bash (but I have heard it runs fine under korn as w
 
 ## Todo
 * Add support for multiple users
-    * External config files (in testing)
+    * [DONE] External config files
     * System-wide config file so that root can change defaults for everyone?
 * Add support for verbosity
     * Say what's being downloaded
     * Allow lables in config file?
 * Optionally suppress m3u creation
-* Probably more things that I'll thnk of later
+* Probably more things that I'll think of later
+
+## Known bugs
+* The sed fallback if xsltproc fails also grabs images, etc. I could require a specific file extension (e.g. mp3, wma, whatever), but that seems like a maintenance nightmare. The short term solution is "have a good XSL file". The script will put one in place for you if you don't supply one.
