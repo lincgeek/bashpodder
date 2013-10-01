@@ -1,11 +1,11 @@
 #!/bin/bash
-# By Linc 10/1/2004
-# Find the latest script at http://lincgeek.org/bashpodder
-# Revision 1.21 12/04/2008 - Many Contributers!
-# If you use this and have made improvements or have comments
-# drop me an email at linc dot fessenden at gmail dot com
-# and post your changes to the forum at http://lincgeek.org/lincware
-# I'd appreciate it!
+
+# By Linc Fessenden, Ben Cotton and contributors
+# Find the latest script at http://github.com/funnelfiasco/bashbpodder
+# Revision 2.0.0-veryalpha
+
+# Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
+# upstream. See LICENSE.txt for full license text.
 
 # Make script crontab friendly:
 cd $(dirname $0)
