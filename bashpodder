@@ -7,12 +7,26 @@
 # Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
 # upstream. See LICENSE.txt for full license text.
 
-# Make script crontab friendly:
-cd $(dirname $0)
+##
+# Allow multiple users by reading from a config file
+##
+CONF_FILE="${HOME}/.bashpodder/bashpodder.conf"
 
-# datadir is the directory you want podcasts saved to:
-#datadir=$(date +%Y-%m-%d)
-datadir="bptest"
+##
+# Command line options for basic use. In order to keep things simple, no flags
+# will be required to just work.
+##
+while getopts c: option
+do
+	case $option in
+		c) CONF_FILE=$OPTARG
+			;;
+	esac
+done
+
+# Set some defaults
+# The directory you want podcasts saved to:
+datadir="${HOME}/podcasts/$(date +%Y-%m-%d)"
 
 # Number of times to retry a download
 download_retries=10
@@ -20,11 +34,26 @@ download_retries=10
 # Which downloader to use? Supported options are 'curl' and 'wget'
 downloader='wget'
 
+# The list of podcasts
+podcast_list="${HOME}/.bashpodder/bp.conf"
+
+# The log of previously-downloaded podcasts
+podcast_log="${HOME}/.bashpodder/podcast.log"
+
+# Apply the settings in the config file
+. $CONF_FILE
+
+# Check to see if the list of podcasts exists. If it doesn't, why bother?
+if [ ! -s $podcast_list ]; then
+	echo "No podcast list in $podcast_list" >&2
+	exit 1;
+fi
+
 # create datadir if necessary:
 mkdir -p $datadir
 
-# Delete any temp file:
-rm -f temp.log
+# Create a temporary directory for temporary things
+work_dir=$(mktemp -d)
 
 # Support both curl and wget
 case $downloader in
@@ -47,16 +76,16 @@ while read podcast
 	file=$(xsltproc parse_enclosure.xsl $podcast 2> /dev/null || $get_podcasts -q $podcast | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
-		echo $url >> temp.log
-		if ! grep "$url" podcast.log > /dev/null
+		echo $url >> $work_dir/temp.log
+		if ! grep "$url" $podcast_log > /dev/null
 			then
 				$download_cmd $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'}) "$url"
 		fi
 		done
-	done < bp.conf
+	done < $podcast_list
 # Move dynamically created log file to permanent log file:
-cat podcast.log >> temp.log
-sort temp.log | uniq > podcast.log
-rm temp.log
+cat $podcast_log >> $work_dir/temp.log
+sort $work_dir/temp.log | uniq > $podcast_log
+rm -rf $work_dir
 # Create an m3u playlist:
 ls $datadir | grep -v m3u > $datadir/podcast.m3u
