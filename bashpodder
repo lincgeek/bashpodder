@@ -91,7 +91,7 @@ case $downloader in
 	;;
 	curl)
 		get_podcasts="curl -s"
-		download_cmd="curl -A BashPodder -s --retry $download_retries -o "
+		download_cmd="curl -L -A BashPodder -s --retry $download_retries -o "
 	;;
 	*)
 		echo "Downloader $downloader not supported."
