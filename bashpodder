@@ -64,7 +64,19 @@ work_dir=$(mktemp -d)
 # Check to see if parse_enclosure.xsl is somewhere awesome like /etc/bashpodder
 # and if not, write it to our temp directory
 if [ ! -s $xsl ]; then
-	write_xsl
+	cat <<EOF > $work_dir/parse_enclosure.xsl
+<?xml version="1.0"?>
+<stylesheet version="1.0"
+        xmlns="http://www.w3.org/1999/XSL/Transform">
+        <output method="text"/>
+        <template match="/">
+                <apply-templates select="/rss/channel/item/enclosure"/>
+        </template>
+        <template match="enclosure">
+                <value-of select="@url"/><text>&#10;</text>
+        </template>
+</stylesheet>
+EOF
 	xsl="{work_dir}/parse_enclosure.xl"
 fi
 
@@ -105,29 +117,3 @@ ls $datadir | grep -v m3u > $datadir/podcast.m3u
 
 exit 0
 
-
-#########
-#
-# Write the xsl file to the temp directory because it's jsut that important.
-# There has to be a better way to do this, but I don't know what it is. This 
-# allows the script to be useful without having to go through the whole "run a
-# script to install a script" process. For people who do (or, for example, when
-# or if I get this packaged for Fedora), the following is just wasted bits.
-#
-#########
-
-function write_xsl {
-	cat <<EOF > $work_dir/parse_enclosure.xsl
-<?xml version="1.0"?>
-<stylesheet version="1.0"
-        xmlns="http://www.w3.org/1999/XSL/Transform">
-        <output method="text"/>
-        <template match="/">
-                <apply-templates select="/rss/channel/item/enclosure"/>
-        </template>
-        <template match="enclosure">
-                <value-of select="@url"/><text>&#10;</text>
-        </template>
-</stylesheet>
-EOF
-}
