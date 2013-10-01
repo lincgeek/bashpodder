@@ -80,7 +80,7 @@ if [ ! -s $xsl ]; then
         </template>
 </stylesheet>
 EOF
-	xsl="{work_dir}/parse_enclosure.xl"
+	xsl="${work_dir}/parse_enclosure.xl"
 fi
 
 # Support both curl and wget
