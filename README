@@ -4,8 +4,10 @@ Bashpodder requires you have bash (but I have heard it runs fine under korn as w
 
 ## Todo
 * Add support for multiple users
-    * External config files
+    * External config files (in testing)
+    * System-wide config file so that root can change defaults for everyone?
 * Add support for verbosity
-   * Say what's being downloaded
-   * Allow lables in config file?
+    * Say what's being downloaded
+    * Allow lables in config file?
+* Optionally suppress m3u creation
 * Probably more things that I'll thnk of later
