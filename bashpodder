@@ -98,6 +98,10 @@ case $downloader in
 	exit 1
 esac
 
+# grep will not be happy if podcast.log doesn't exist, so create that before
+# starting any real work
+touch $podcast_log 
+
 # Read the bp.conf file and download any url not already in the podcast.log file:
 while read podcast
 	do
