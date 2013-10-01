@@ -47,7 +47,7 @@ xsl='/etc/bashpodder/parse_enclosure.xsl'
 
 
 # Apply the settings in the config file
-. $CONF_FILE
+[ -e $CONF_FILE ] && . $CONF_FILE
 
 # Check to see if the list of podcasts exists. If it doesn't, why bother?
 if [ ! -s $podcast_list ]; then
@@ -58,8 +58,11 @@ fi
 # create datadir if necessary:
 mkdir -p $datadir
 
-# Create a temporary directory for temporary things
-work_dir=$(mktemp -d)
+# Create a temporary directory for temporary things. The version of mktemp on
+# OS X *requires* a template, so we have to specify one. Since $TMPDIR isn't set
+# on all OSes, we have to check for that, too.
+temp_dir=${TMPDIR:-/tmp}
+work_dir=$(mktemp -d /tmp/bashpodder.XXXXX)
 
 # Check to see if parse_enclosure.xsl is somewhere awesome like /etc/bashpodder
 # and if not, write it to our temp directory
