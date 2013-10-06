@@ -7,6 +7,18 @@
 # Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
 # upstream. See LICENSE.txt for full license text.
 
+# Help me help you.
+function print_help {
+cat <<EOF >&1
+bashpodder 2.0.0-veryalpha by Linc Fessenden, Ben Cotton, and contributors
+
+	-c [file]	A user-specific config file to use
+	-h 	This help message
+	-p	Make an m3u playlist from the downloaded podcasts
+	-P	Do not make an m3u playlist from the downloaded podcasts
+EOF
+}
+
 ##
 # Set a few variables that need some kind of sane default
 ##
@@ -21,14 +33,18 @@ CONF_FILE="${HOME}/.bashpodder/bashpodder.conf"
 # Command line options for basic use. In order to keep things simple, no flags
 # will be required to just work.
 ##
-while getopts c:pP option
+while getopts c:hpP option
 do
 	case $option in
 		c) CONF_FILE=$OPTARG
 			;;
+		h) print_help
+			;;
 		p) make_playlist='true'
 			;;
 		P) make_playlist='false'
+			;;
+		*) print_help
 			;;
 	esac
 done
