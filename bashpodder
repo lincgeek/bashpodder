@@ -14,6 +14,7 @@ make_playlist='true'
 ##
 # Allow multiple users by reading from a config file
 ##
+GLOBAL_CONF_FILE='/etc/bashpodder/bashpodder.conf'
 CONF_FILE="${HOME}/.bashpodder/bashpodder.conf"
 
 ##
@@ -54,7 +55,8 @@ podcast_log="${HOME}/.bashpodder/podcast.log"
 xsl='/etc/bashpodder/parse_enclosure.xsl'
 
 
-# Apply the settings in the config file
+# Apply the settings in the config files
+[ -e $GLOBAL_CONF_FILE ] && . $GLOBAL_CONF_FILE
 [ -e $CONF_FILE ] && . $CONF_FILE
 
 # Check to see if the list of podcasts exists. If it doesn't, why bother?
