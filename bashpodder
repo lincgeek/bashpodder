@@ -8,6 +8,10 @@
 # upstream. See LICENSE.txt for full license text.
 
 ##
+# Set a few variables that need some kind of sane default
+##
+make_playlist='true'
+##
 # Allow multiple users by reading from a config file
 ##
 CONF_FILE="${HOME}/.bashpodder/bashpodder.conf"
@@ -16,10 +20,14 @@ CONF_FILE="${HOME}/.bashpodder/bashpodder.conf"
 # Command line options for basic use. In order to keep things simple, no flags
 # will be required to just work.
 ##
-while getopts c: option
+while getopts c:pP option
 do
 	case $option in
 		c) CONF_FILE=$OPTARG
+			;;
+		p) make_playlist='true'
+			;;
+		P) make_playlist='false'
 			;;
 	esac
 done
@@ -119,8 +127,11 @@ while read podcast
 cat $podcast_log >> $work_dir/temp.log
 sort $work_dir/temp.log | uniq > $podcast_log
 rm -rf $work_dir
+
 # Create an m3u playlist:
-ls $datadir | grep -v m3u > $datadir/podcast.m3u
+if [ $make_playlist == 'true' ]; then
+	ls $datadir | grep -v m3u > $datadir/podcast.m3u
+fi
 
 exit 0
 

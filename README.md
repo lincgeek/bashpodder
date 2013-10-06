@@ -9,7 +9,7 @@ Bashpodder requires you have bash (but I have heard it runs fine under korn as w
 * Add support for verbosity
     * Say what's being downloaded
     * Allow lables in config file?
-* Optionally suppress m3u creation
+* [DONE] Optionally suppress m3u creation
 * Probably more things that I'll think of later
 
 ## Known bugs
