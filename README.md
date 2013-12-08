@@ -7,7 +7,7 @@ Bashpodder requires you have bash (but I have heard it runs fine under korn as w
     * [DONE] External config files
     * [DONE] System-wide config file so that root can change defaults for everyone?
 * Add support for verbosity
-    * Say what's being downloaded
+    * [DONE] Say what's being downloaded
     * Allow lables in config file?
 * [DONE] Optionally suppress m3u creation
 * [DONE] Add help output to explain flags

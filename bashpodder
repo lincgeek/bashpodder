@@ -16,6 +16,7 @@ bashpodder 2.0.0-veryalpha by Linc Fessenden, Ben Cotton, and contributors
 	-h 	This help message
 	-p	Make an m3u playlist from the downloaded podcasts
 	-P	Do not make an m3u playlist from the downloaded podcasts
+	-v	Verbose mode (prints the URL being downloaded)
 EOF
 }
 
@@ -23,6 +24,7 @@ EOF
 # Set a few variables that need some kind of sane default
 ##
 make_playlist='true'
+verbose='false'
 ##
 # Allow multiple users by reading from a config file
 ##
@@ -33,7 +35,7 @@ CONF_FILE="${HOME}/.bashpodder/bashpodder.conf"
 # Command line options for basic use. In order to keep things simple, no flags
 # will be required to just work.
 ##
-while getopts c:hpP option
+while getopts c:hpPv option
 do
 	case $option in
 		c) CONF_FILE=$OPTARG
@@ -43,6 +45,8 @@ do
 		p) make_playlist='true'
 			;;
 		P) make_playlist='false'
+			;;
+		v) verbose='true'
 			;;
 		*) print_help
 			;;
@@ -131,12 +135,14 @@ touch $podcast_log
 # Read the bp.conf file and download any url not already in the podcast.log file:
 while read podcast
 	do
+	if [ "$verbose" == "true" ]; then echo "Checking podcasts in $podcast"; fi
 	file=$(xsltproc $xsl $podcast 2> /dev/null || $get_podcasts -q $podcast | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
 		echo $url >> $work_dir/temp.log
 		if ! grep "$url" $podcast_log > /dev/null
 			then
+				if [ "$verbose" == "true" ]; then echo "Downloading $url"; fi
 				$download_cmd $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'}) "$url"
 		fi
 		done
@@ -148,6 +154,7 @@ rm -rf $work_dir
 
 # Create an m3u playlist:
 if [ $make_playlist == 'true' ]; then
+	if [ "$verbose" == "true" ]; then echo "Creating playlist"; fi
 	ls $datadir | grep -v m3u > $datadir/podcast.m3u
 fi
 
