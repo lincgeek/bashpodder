@@ -3,15 +3,7 @@ BashPodder was written by Linc Fessenden with the generous code contributions an
 Bashpodder requires you have bash (but I have heard it runs fine under korn as well), wget or curl, sed and xsltproc.
 
 ## Todo
-* Add support for multiple users
-    * [DONE] External config files
-    * [DONE] System-wide config file so that root can change defaults for everyone?
-* Add support for verbosity
-    * [DONE] Say what's being downloaded
-    * Allow lables in config file?
-* [DONE] Optionally suppress m3u creation
-* [DONE] Add help output to explain flags
-* Probably more things that I'll think of later
+* bashpodder is feature complete (for now)
 
 ## Known bugs
 * The sed fallback if xsltproc fails also grabs images, etc. I could require a specific file extension (e.g. mp3, wma, whatever), but that seems like a maintenance nightmare. The short term solution is "have a good XSL file". The script will put one in place for you if you don't supply one.
