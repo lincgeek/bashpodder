@@ -2,7 +2,7 @@
 
 # By Linc Fessenden, Ben Cotton and contributors
 # Find the latest script at http://github.com/funnelfiasco/bashbpodder
-# Revision 2.0.0-veryalpha
+# Revision 2.0.1
 
 # Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
 # upstream. See LICENSE.txt for full license text.
@@ -10,7 +10,7 @@
 # Help me help you.
 function print_help {
 cat <<EOF >&1
-bashpodder 2.0.0-veryalpha by Linc Fessenden, Ben Cotton, and contributors
+bashpodder 2.0.1 by Linc Fessenden, Ben Cotton, and contributors
 
 	-c [file]	A user-specific config file to use
 	-h 	This help message
@@ -143,7 +143,7 @@ while read podcast
 		if ! grep "$url" $podcast_log > /dev/null
 			then
 				if [ "$verbose" == "true" ]; then echo "Downloading $url"; fi
-				$download_cmd $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'}) "$url"
+				$download_cmd $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'?' {'print $1'} | awk -F'=' {'print $NF'}) "$url"
 		fi
 		done
 	done < $podcast_list
