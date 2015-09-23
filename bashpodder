@@ -2,7 +2,7 @@
 
 # By Linc Fessenden, Ben Cotton and contributors
 # Find the latest script at http://github.com/funnelfiasco/bashbpodder
-# Revision 2.0.1
+# Revision 2.0.2
 
 # Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
 # upstream. See LICENSE.txt for full license text.
@@ -10,7 +10,7 @@
 # Help me help you.
 function print_help {
 cat <<EOF >&1
-bashpodder 2.0.1 by Linc Fessenden, Ben Cotton, and contributors
+bashpodder 2.0.2 by Linc Fessenden, Ben Cotton, and contributors
 
 	-c [file]	A user-specific config file to use
 	-h 	This help message
@@ -131,6 +131,7 @@ esac
 # grep will not be happy if podcast.log doesn't exist, so create that before
 # starting any real work
 touch $podcast_log 
+touch $work_dir/temp.log
 
 # Read the bp.conf file and download any url not already in the podcast.log file:
 while read podcast
@@ -139,17 +140,18 @@ while read podcast
 	file=$(xsltproc $xsl $podcast 2> /dev/null || $get_podcasts -q $podcast | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
-		echo $url >> $work_dir/temp.log
-		if ! grep "$url" $podcast_log > /dev/null
+		if ! grep -q "$url" $podcast_log $work_dir/temp.log
 			then
+				echo $url >> $work_dir/temp.log
 				if [ "$verbose" == "true" ]; then echo "Downloading $url"; fi
 				$download_cmd $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'?' {'print $1'} | awk -F'=' {'print $NF'}) "$url"
+
 		fi
 		done
 	done < $podcast_list
 # Move dynamically created log file to permanent log file:
 cat $podcast_log >> $work_dir/temp.log
-sort $work_dir/temp.log | uniq > $podcast_log
+sort $work_dir/temp.log > $podcast_log
 rm -rf $work_dir
 
 # Create an m3u playlist:
