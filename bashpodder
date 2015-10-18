@@ -2,7 +2,7 @@
 
 # By Linc Fessenden, Ben Cotton and contributors
 # Find the latest script at http://github.com/funnelfiasco/bashbpodder
-# Revision 2.0.2
+# Revision 2.0.3-SNAPSHOT
 
 # Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
 # upstream. See LICENSE.txt for full license text.
@@ -10,7 +10,7 @@
 # Help me help you.
 function print_help {
 cat <<EOF >&1
-bashpodder 2.0.2 by Linc Fessenden, Ben Cotton, and contributors
+bashpodder 2.0.3-SNAPSHOT by Linc Fessenden, Ben Cotton, and contributors
 
 	-c [file]	A user-specific config file to use
 	-h 	This help message
@@ -92,7 +92,7 @@ mkdir -p $datadir
 # OS X *requires* a template, so we have to specify one. Since $TMPDIR isn't set
 # on all OSes, we have to check for that, too.
 temp_dir=${TMPDIR:-/tmp}
-work_dir=$(mktemp -d /tmp/bashpodder.XXXXX)
+work_dir=$(mktemp -d /${temp_dir}/bashpodder.XXXXX)
 
 # Check to see if parse_enclosure.xsl is somewhere awesome like /etc/bashpodder
 # and if not, write it to our temp directory
