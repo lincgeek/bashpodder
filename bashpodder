@@ -1,40 +1,164 @@
 #!/bin/bash
-# By Linc 10/1/2004
-# Find the latest script at http://lincgeek.org/bashpodder
-# Revision 1.21 12/04/2008 - Many Contributers!
-# If you use this and have made improvements or have comments
-# drop me an email at linc dot fessenden at gmail dot com
-# and post your changes to the forum at http://lincgeek.org/lincware
-# I'd appreciate it!
 
-# Make script crontab friendly:
-cd $(dirname $0)
+# By Linc Fessenden, Ben Cotton and contributors
+# Find the latest script at http://github.com/funnelfiasco/bashbpodder
+# Revision 2.0.5-SNAPSHOT
 
-# datadir is the directory you want podcasts saved to:
-datadir=$(date +%Y-%m-%d)
+# Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
+# upstream. See LICENSE.txt for full license text.
+
+# Help me help you.
+function print_help {
+cat <<EOF >&1
+bashpodder 2.0.5-SNAPSHOT by Linc Fessenden, Ben Cotton, and contributors
+
+	-c [file]	A user-specific config file to use
+	-h 	This help message
+	-p	Make an m3u playlist from the downloaded podcasts
+	-P	Do not make an m3u playlist from the downloaded podcasts
+	-v	Verbose mode (prints the URL being downloaded)
+EOF
+}
+
+##
+# Set a few variables that need some kind of sane default
+##
+make_playlist='true'
+verbose='false'
+##
+# Allow multiple users by reading from a config file
+##
+GLOBAL_CONF_FILE='/etc/bashpodder/bashpodder.conf'
+CONF_FILE="${HOME}/.bashpodder/bashpodder.conf"
+
+##
+# Command line options for basic use. In order to keep things simple, no flags
+# will be required to just work.
+##
+while getopts c:hpPv option
+do
+	case $option in
+		c) CONF_FILE=$OPTARG
+			;;
+		h) print_help
+			;;
+		p) make_playlist='true'
+			;;
+		P) make_playlist='false'
+			;;
+		v) verbose='true'
+			;;
+		*) print_help
+			;;
+	esac
+done
+
+# Set some defaults
+# The directory you want podcasts saved to:
+datadir="${HOME}/podcasts/$(date +%Y-%m-%d)"
+
+# Number of times to retry a download
+download_retries=10
+
+# Which downloader to use? Supported options are 'curl' and 'wget'
+downloader='wget'
+
+# The list of podcasts
+podcast_list="${HOME}/.bashpodder/bp.conf"
+
+# The log of previously-downloaded podcasts
+podcast_log="${HOME}/.bashpodder/podcast.log"
+
+# The file xsltproc uses to parse the RSS feeds (the write_xsl function acts as
+# a backstop in case this file doesn't exist and the user doesn't point us to 
+# one that does)
+xsl='/etc/bashpodder/parse_enclosure.xsl'
+
+
+# Apply the settings in the config files
+[ -e $GLOBAL_CONF_FILE ] && . $GLOBAL_CONF_FILE
+[ -e $CONF_FILE ] && . $CONF_FILE
+
+# Check to see if the list of podcasts exists. If it doesn't, why bother?
+if [ ! -s $podcast_list ]; then
+	echo "No podcast list in $podcast_list" >&2
+	exit 1;
+fi
 
 # create datadir if necessary:
 mkdir -p $datadir
 
-# Delete any temp file:
-rm -f temp.log
+# Create a temporary directory for temporary things. The version of mktemp on
+# OS X *requires* a template, so we have to specify one. Since $TMPDIR isn't set
+# on all OSes, we have to check for that, too.
+temp_dir=${TMPDIR:-/tmp}
+work_dir=$(mktemp -d /${temp_dir}/bashpodder.XXXXX)
 
-# Read the bp.conf file and wget any url not already in the podcast.log file:
+# Check to see if parse_enclosure.xsl is somewhere awesome like /etc/bashpodder
+# and if not, write it to our temp directory
+if [ ! -s $xsl ]; then
+	cat <<EOF > $work_dir/parse_enclosure.xsl
+<?xml version="1.0"?>
+<stylesheet version="1.0"
+        xmlns="http://www.w3.org/1999/XSL/Transform">
+        <output method="text"/>
+        <template match="/">
+                <apply-templates select="/rss/channel/item/enclosure"/>
+        </template>
+        <template match="enclosure">
+                <value-of select="@url"/><text>&#10;</text>
+        </template>
+</stylesheet>
+EOF
+	xsl="${work_dir}/parse_enclosure.xl"
+fi
+
+# Support both curl and wget
+case $downloader in
+	wget)
+		get_podcasts="wget --max-redirect 5 -q -O -"
+		download_cmd="wget --max-redirect 5 -U BashPodder -c -q -t $download_retries -O "
+	;;
+	curl)
+		get_podcasts="curl -L -s"
+		download_cmd="curl -L -A BashPodder -s --retry $download_retries -o "
+	;;
+	*)
+		echo "Downloader $downloader not supported."
+	exit 1
+esac
+
+# grep will not be happy if podcast.log doesn't exist, so create that before
+# starting any real work
+touch $podcast_log 
+touch $work_dir/temp.log
+
+# Read the bp.conf file and download any url not already in the podcast.log file:
 while read podcast
 	do
-	file=$(xsltproc parse_enclosure.xsl $podcast 2> /dev/null || wget -q $podcast -O - | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
+	if [ "$verbose" == "true" ]; then echo "Checking podcasts in $podcast"; fi
+	file=$(xsltproc $xsl $podcast 2> /dev/null || $get_podcasts -q $podcast | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
-		echo $url >> temp.log
-		if ! grep "$url" podcast.log > /dev/null
+		if ! grep -q "$url" $podcast_log $work_dir/temp.log
 			then
-			wget -t 10 -U BashPodder -c -q -O $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'}) "$url"
+				echo $url >> $work_dir/temp.log
+				if [ "$verbose" == "true" ]; then echo "Downloading $url"; fi
+				$download_cmd $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'?' {'print $1'} | awk -F'=' {'print $NF'}) "$url"
+
 		fi
 		done
-	done < bp.conf
+	done < $podcast_list
 # Move dynamically created log file to permanent log file:
-cat podcast.log >> temp.log
-sort temp.log | uniq > podcast.log
-rm temp.log
+cat $podcast_log >> $work_dir/temp.log
+sort $work_dir/temp.log > $podcast_log
+rm -rf $work_dir
+
 # Create an m3u playlist:
-ls $datadir | grep -v m3u > $datadir/podcast.m3u
+if [ $make_playlist == 'true' ]; then
+	if [ "$verbose" == "true" ]; then echo "Creating playlist"; fi
+	ls $datadir | grep -v m3u > $datadir/podcast.m3u
+fi
+
+exit 0
+
