@@ -2,7 +2,7 @@
 
 # By Linc Fessenden, Ben Cotton and contributors
 # Find the latest script at http://github.com/funnelfiasco/bashbpodder
-# Revision 2.0.3-SNAPSHOT
+# Revision 2.0.4
 
 # Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
 # upstream. See LICENSE.txt for full license text.
@@ -116,11 +116,11 @@ fi
 # Support both curl and wget
 case $downloader in
 	wget)
-		get_podcasts="wget -q -O -"
-		download_cmd="wget -U BashPodder -c -q -t $download_retries -O "
+		get_podcasts="wget --max-redirect 5 -q -O -"
+		download_cmd="wget --max-redirect 5 -U BashPodder -c -q -t $download_retries -O "
 	;;
 	curl)
-		get_podcasts="curl -s"
+		get_podcasts="curl -L -s"
 		download_cmd="curl -L -A BashPodder -s --retry $download_retries -o "
 	;;
 	*)
