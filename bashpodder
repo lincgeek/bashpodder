@@ -26,9 +26,10 @@ while read podcast
 	for url in $file
 		do
 		echo $url >> temp.log
-		if ! grep "$url" podcast.log > /dev/null
+		if ! grep -F "$url" podcast.log > /dev/null
 			then
-			wget -t 10 -U BashPodder -c -q -O $datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'}) "$url"
+			destination=$datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'})
+                        wget -t 10 -U BashPodder -c -q -O $destination "$url" || rm $destination
 		fi
 		done
 	done < bp.conf
