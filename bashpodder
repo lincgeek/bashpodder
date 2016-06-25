@@ -10,6 +10,11 @@
 # Make script crontab friendly:
 cd $(dirname $0)
 
+# Destination location filename can be extracted from the URL to match the
+# filename they call it in the enclosure.  Note: this feature is off by
+# default because it requires Perl and its URL::URI package.
+useremotefilename=0
+
 # datadir is the directory you want podcasts saved to:
 datadir=$(date +%Y-%m-%d)
 
@@ -28,8 +33,13 @@ while read podcast
 		echo $url >> temp.log
 		if ! grep -F "$url" podcast.log > /dev/null
 			then
-			destination=$datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'})
-                        wget -t 10 -U BashPodder -c -q -O $destination "$url" || rm $destination
+			if [ $useremotefilename = 1 ];
+				then
+				destination=$datadir/$(echo "$url" | perl -ne 'use URI::URL; chomp; $url = new URI::URL($_); @x = $url->path_components(); print $x[$#x];')
+			else
+				destination=$datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'})
+			fi
+			wget -t 10 -U BashPodder -c -q -O $destination "$url" || rm $destination
 		fi
 		done
 	done < bp.conf
