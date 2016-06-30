@@ -2,15 +2,14 @@
 
 # By Linc Fessenden, Ben Cotton and contributors
 # Find the latest script at http://github.com/funnelfiasco/bashbpodder
-# Revision 2.0.5-SNAPSHOT
+# Revision 2.0.5
 
-# Licensed under GPLv2 until Linc colarifies the version of the GPL that applies
-# upstream. See LICENSE.txt for full license text.
+# Licensed under GPLv2. See LICENSE.txt for full license text.
 
 # Help me help you.
 function print_help {
 cat <<EOF >&1
-bashpodder 2.0.5-SNAPSHOT by Linc Fessenden, Ben Cotton, and contributors
+podbasher 2.0.5 by Linc Fessenden, Ben Cotton, and contributors
 
 	-c [file]	A user-specific config file to use
 	-h 	This help message
