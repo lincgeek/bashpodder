@@ -1,4 +1,4 @@
-BashPodder was written by Linc Fessenden with the generous code contributions and great ideas of many of its users, some of whom have contributed modified scripts of their own. podbasher 2 is "soft" fork (or a spork?) by Ben Cotton that adds some complexity while keeping the general ethos of BashPodder. podbasher licensed under the GPLv2.
+BashPodder was written by Linc Fessenden with the generous code contributions and great ideas of many of its users, some of whom have contributed modified scripts of their own. podbasher 2 is "soft" fork (or a spork?) by Ben Cotton that adds some complexity while keeping the general ethos of BashPodder. podbasher licensed under the GPLv3.
 
 Bashpodder requires you have bash (but I have heard it runs fine under korn as well), wget or curl, sed and xsltproc.
 
