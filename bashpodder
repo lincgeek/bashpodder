@@ -22,7 +22,7 @@ rm -f temp.log
 # Read the bp.conf file and wget any url not already in the podcast.log file:
 while read podcast
 	do
-	file=$(xsltproc parse_enclosure.xsl $podcast 2> /dev/null || wget -q $podcast -O - | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
+	file=$(wget -q $podcast -O - | xsltproc parse_enclosure.xsl - 2> /dev/null || wget -q $podcast -O - | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
 		echo $url >> temp.log
