@@ -22,11 +22,11 @@ rm -f temp.log
 # Read the bp.conf file and wget any url not already in the podcast.log file:
 while read podcast
 	do
-	file=$(xsltproc parse_enclosure.xsl $podcast 2> /dev/null || wget -q $podcast -O - | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
+	file=$(wget -q $podcast -O - | xsltproc parse_enclosure.xsl - 2> /dev/null || wget -q $podcast -O - | tr '\r' '\n' | tr \' \" | sed -n 's/.*url="\([^"]*\)".*/\1/p')
 	for url in $file
 		do
 		echo $url >> temp.log
-		if ! grep -F "$url" podcast.log > /dev/null
+		if ( ! [ -f podcast.log ] ) || ( ! grep -F "$url" podcast.log > /dev/null )
 			then
 			destination=$datadir/$(echo "$url" | awk -F'/' {'print $NF'} | awk -F'=' {'print $NF'} | awk -F'?' {'print $1'})
                         wget -t 10 -U BashPodder -c -q -O $destination "$url" || rm $destination
@@ -34,7 +34,10 @@ while read podcast
 		done
 	done < bp.conf
 # Move dynamically created log file to permanent log file:
-cat podcast.log >> temp.log
+if [ -f podcast.log ]
+then
+    cat podcast.log >> temp.log
+fi
 sort temp.log | uniq > podcast.log
 rm temp.log
 # Create an m3u playlist:
